@@ -152,7 +152,10 @@ install_dependencies() {
     sleep 2
 
     sudo pacman -Syy
-    dependencies="alacritty base-devel bat brightnessctl bspwm clipcat dunst eza feh fzf thunar tumbler gvfs-mtp firefox geany git imagemagick jq jgmenu kitty libwebp maim mpc mpd mpv neovim xcolor ncmpcpp npm pamixer pacman-contrib papirus-icon-theme picom playerctl polybar lxsession python-gobject redshift rofi rustup sxhkd xclip xdg-user-dirs xdo xdotool xsettingsd xorg-xdpyinfo xorg-xkill xorg-xprop xorg-xrandr xorg-xsetroot xorg-xwininfo xorg-xrdb yazi zsh zsh-autosuggestions zsh-history-substring-search zsh-syntax-highlighting ttf-inconsolata ttf-jetbrains-mono ttf-jetbrains-mono-nerd ttf-terminus-nerd ttf-ubuntu-mono-nerd webp-pixbuf-loader"
+    # xorg-xinit xorg-server: required for startx / X11 session
+    # lightdm lightdm-gtk-greeter: display manager (handles DRM master on ARM/VM)
+    # mpd removed from here — built from AUR in install_aur_dependencies (pacman version has x86-only sonames on ARM)
+    dependencies="alacritty base-devel bat brightnessctl bspwm clipcat dunst eza feh fzf thunar tumbler gvfs-mtp firefox geany git imagemagick jq jgmenu kitty libwebp maim mpc mpv neovim xcolor ncmpcpp npm pamixer pacman-contrib papirus-icon-theme picom playerctl polybar lxsession python-gobject redshift rofi rustup sxhkd xclip xdg-user-dirs xdo xdotool xsettingsd xorg-xdpyinfo xorg-xkill xorg-xprop xorg-xrandr xorg-xsetroot xorg-xwininfo xorg-xrdb xorg-xinit xorg-server lightdm lightdm-gtk-greeter yazi zsh zsh-autosuggestions zsh-history-substring-search zsh-syntax-highlighting ttf-inconsolata ttf-jetbrains-mono ttf-jetbrains-mono-nerd ttf-terminus-nerd ttf-ubuntu-mono-nerd webp-pixbuf-loader"
 
     # Arrays temporales
     failed_deps=""
@@ -353,7 +356,9 @@ install_aur_dependencies() {
     fi
 
     # xwinwrap-0.9-bin is a prebuilt x86_64 binary — replaced with xwinwrap-git (source build, ARM compatible)
-    aur_dependencies="xwinwrap-git i3lock-color simple-mtpfs fzf-tab-git"
+    # mpd: pacman version has x86_64-only sonames (libixml.so.11-64 / libupnp.so.17-64); build from AUR instead
+    # eww-git: Chaotic AUR has no aarch64 builds; build from AUR source
+    aur_dependencies="xwinwrap-git i3lock-color simple-mtpfs fzf-tab-git mpd eww-git"
 
     # Arrays temporales
     failed_aur_deps=""
@@ -537,6 +542,10 @@ configure_services() {
     printf "%b\n" "${BLD}${CYE}Enabling user ArchUpdates service...${CNC}"
     systemctl --user enable --now ArchUpdates.timer
 
+    # LightDM display manager — handles DRM master and VT allocation on ARM/VM
+    printf "%b\n" "${BLD}${CYE}Enabling LightDM display manager...${CNC}"
+    sudo systemctl enable lightdm.service
+
     # Virtual Machine Detection
     is_virtual_machine() {
         systemd-detect-virt --quiet >/dev/null 2>&1
@@ -640,7 +649,6 @@ add_chaotic_repo
 install_dependencies
 install_aur_dependencies
 install_theme_dependencies
-install_chaotic_dependencies
 clone_dotfiles
 
 backup_existing_config
