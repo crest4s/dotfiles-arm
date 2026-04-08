@@ -97,6 +97,17 @@ ${BLD}${CGR}[${CRE}!${CGR}]${CNC} ${BLD}${CRE}This script does NOT have the pote
 
 
 add_chaotic_repo() {
+    # Chaotic AUR does not provide aarch64 packages — skip entirely on ARM.
+    # eww-git will be built from source via paru in install_chaotic_dependencies().
+    if [ "$(uname -m)" = "aarch64" ]; then
+        clear
+        logo "Chaotic AUR — skipped on ARM"
+        sleep 2
+        printf "%b\n\n" "${BLD}${CYE}Chaotic AUR has no aarch64 mirrors. ${CGR}eww-git${CYE} will be built from AUR source.${CNC}"
+        sleep 3
+        return 0
+    fi
+
     clear
     logo "Add chaotic-aur repository"
     repo_chaotic="chaotic-aur"
@@ -270,7 +281,7 @@ install_theme_dependencies() {
 
 install_chaotic_dependencies() {
     clear
-    logo "Installing needed packages from chaotic repository..."
+    logo "Installing eww-git..."
     sleep 2
 
     chaotic_dependencies="eww-git"
@@ -279,25 +290,35 @@ install_chaotic_dependencies() {
     failed_chaotic_deps=""
     retry_chaotic_failed=""
 
-    # First pass
-    for chaotic_pkg in $chaotic_dependencies; do
-        sleep 0.50
-        if ! sudo pacman -S --noconfirm --needed "$chaotic_pkg"; then
-            failed_chaotic_deps="$failed_chaotic_deps $chaotic_pkg"
-        fi
-    done
-
-    # If there were failures, try again via paru (Chaotic AUR may lack aarch64 builds)
-    if [ -n "$failed_chaotic_deps" ]; then
-        printf "\n%b\n" "${BLD}${CRE}These dependencies failed from Chaotic AUR:${CYE}${failed_chaotic_deps}${CNC}"
-        printf "%b\n\n" "${BLD}${CYE}Retrying via paru (AUR source build for ARM)...${CNC}"
-
-        for chaotic_pkg in $failed_chaotic_deps; do
+    # On ARM chaotic-aur is not available — go straight to paru
+    if [ "$(uname -m)" = "aarch64" ]; then
+        printf "%b\n" "${BLD}${CYE}ARM detected — building ${CBL}eww-git${CYE} from AUR source...${CNC}"
+        for chaotic_pkg in $chaotic_dependencies; do
             sleep 0.50
             if ! paru -S --skipreview --noconfirm "$chaotic_pkg"; then
                 retry_chaotic_failed="$retry_chaotic_failed $chaotic_pkg"
             fi
         done
+    else
+        # First pass via pacman (chaotic-aur)
+        for chaotic_pkg in $chaotic_dependencies; do
+            sleep 0.50
+            if ! sudo pacman -S --noconfirm --needed "$chaotic_pkg"; then
+                failed_chaotic_deps="$failed_chaotic_deps $chaotic_pkg"
+            fi
+        done
+
+        # Fallback to paru if pacman failed
+        if [ -n "$failed_chaotic_deps" ]; then
+            printf "\n%b\n" "${BLD}${CRE}Chaotic AUR failed:${CYE}${failed_chaotic_deps}${CNC}"
+            printf "%b\n\n" "${BLD}${CYE}Retrying via paru...${CNC}"
+            for chaotic_pkg in $failed_chaotic_deps; do
+                sleep 0.50
+                if ! paru -S --skipreview --noconfirm "$chaotic_pkg"; then
+                    retry_chaotic_failed="$retry_chaotic_failed $chaotic_pkg"
+                fi
+            done
+        fi
     fi
 
     # Final Result
