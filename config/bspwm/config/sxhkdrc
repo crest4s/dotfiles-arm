@@ -20,11 +20,11 @@ alt + F1
 super + {_,alt + }Return
     OpenApps --{terminal,floating}
 
-# App launcher
-super + @space
+# App launcher  [Cmd+D — avoids Spotlight Cmd+Space]
+super + d
     OpenApps --menu
 
-# Theme Selector
+# Theme Selector  [Option+Space]
 alt + @space
     RiceSelector
 
@@ -34,12 +34,12 @@ alt + @space
 super + {b,e,f}
     OpenApps --{browser,editor,filemanager}
 
-# Terminal apps (yazi, nvim, ncmpcpp)
-super + {y,v,m}
+# Terminal apps (yazi, nvim, ncmpcpp)  [v→i: avoids Cmd+V Paste]
+super + {y,i,shift + m}
     OpenApps --{yazi,nvim,music}
 
-# Media apps (Pavucontrol, Telegram, Whatsapp)
-super + {p,t,w}
+# Media apps (Pavucontrol, Telegram, Whatsapp)  [w→shift+w: avoids Cmd+W Close]
+super + {p,t,shift + w}
     OpenApps --{soundcontrol,telegram,whats}
 
 # Rice Editor App
@@ -48,7 +48,7 @@ super + r
 
 # ----- Rofi Applets ----- #
 
-#Terminal Selector
+# Terminal Selector
 super + alt + t
     Term --selecterm
 
@@ -88,8 +88,8 @@ super + alt + l
 super + alt + k
     OpenApps --keyboard
 
-# RofiPass applet
-super + alt + x
+# RofiPass applet  [shift+x: avoids Cmd+X Cut]
+super + alt + shift + x
     OpenApps --pass
 
 # ----- Environment Apps ----- #
@@ -138,8 +138,8 @@ XF86Audio{Next,Prev,Play,Stop}
 super + alt + r
     bspc wm -r
 
-# Close/Kill node
-super + {_,shift + }x
+# Close/Kill node  [Option+X / Option+Shift+X — avoids Cmd+X Cut]
+alt + {_,shift + }x
     bspc node -{c,k}
 
 # Reload sxhkd Keybinds
@@ -152,8 +152,8 @@ super + Escape
 alt + {t,shift + t,a,f}
     bspc node -t {tiled,pseudo_tiled,floating,fullscreen}
 
-# Set the node flags
-alt + {m,x,s,p}
+# Set the node flags  [x→l for locked: avoids conflict with close shortcut]
+alt + {m,l,s,p}
     bspc node -g {marked,locked,sticky,private}
 
 # Hide window
@@ -210,18 +210,18 @@ super + ctrl {h,v,q}
 
 # ----- Move/Resize Nodes ----- #
 
-# balance desktop's nodes
+# Balance desktop nodes
 super + ctrl + b
-  bspc node @/ -B
+    bspc node @/ -B
 
-# increase/decrease Node
+# Increase/decrease node size
 super + alt + {plus,minus}
     { \
        bspc node -z top_right 20 -20 ; bspc node -z bottom_left -20 20; \
     ,  bspc node -z top_right -20 20 ; bspc node -z bottom_left 20 -20; \
     }
 
-# increase/decrease FLOATING node size (zoom in/out)
+# Increase/decrease floating node size
 super + ctrl + {plus,minus}
     { \
 	xdotool getactivewindow windowmove --relative -- -50 -25 ; xdo resize -w +100 -h +50; \
@@ -234,19 +234,18 @@ super + shift + {Left,Down,Up,Right}
 
 # ----- Multi operation functions ----- #
 
-# Close all nodes in current desktop
-super + ctrl + x
+# Close all nodes in current desktop  [ctrl+shift+x: avoids Cmd+X]
+super + ctrl + shift + x
     bspc query -N -d | xargs -I id -n 1 bspc node id -c
 
 # Close/Kill all unfocused local windows
-super + n ; {x,k}
+super + g ; {x,k}
     bspc query -N -n '.!focused.!marked.local.window' | xargs -I id -n 1 bspc node id {-c,-k}
 
 # Bring all marked windows to the focused desktop
-super + n ; m
+super + g ; m
     bspc query -N -n '.marked' | xargs -I id -n 1 bspc node id -d focused --follow
 
 # Bring everything from desktop X to the current desktop
-# Example usage: super + n followed by 5 (brings everything from desktop 5)
-super + n ; {1-9}
+super + g ; {1-9}
     bspc query -N -d {1-9} -n '.window' | xargs -I id -n 1 bspc node id -d focused
