@@ -342,10 +342,13 @@ install_aur_dependencies() {
     sleep 2
 
     if ! command -v paru >/dev/null 2>&1; then
+        printf "%b\n" "${BLD}${CYE}Configuring Rust toolchain...${CNC}"
+        rustup default stable
+
         printf "%b\n" "${BLD}${CYE}Installing PARU${CNC}"
         git clone https://aur.archlinux.org/paru.git
         cd paru
-        makepkg -si
+        makepkg -si --noconfirm
         cd
     fi
 
